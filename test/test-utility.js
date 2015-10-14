@@ -5,6 +5,7 @@ var util = (function() {
   var path = require('path');
   var os = require('os');
   var crypto = require('crypto');
+  var _ = require('lodash');
   var assert;
   var mockGen;
 
@@ -12,14 +13,33 @@ var util = (function() {
     return path.join(os.tmpdir(), crypto.randomBytes(20).toString('hex'));
   }
 
-  function goCreate(subgenerator) {
+  function goCreate(subgenerator, tempDir) {
+    var testDirectory;
+    if (tempDir) {
+      // Don't clear the test directory, we need it to have previous contents.
+      before(function() {
+        testDirectory = yeoman.test.testDirectory;
+        yeoman.test.testDirectory = function(dir, cb) {
+          process.chdir(dir);
+          cb();
+        };
+      });
+      after(function() {
+        yeoman.test.testDirectory = testDirectory;
+      });
+    }
     before(function(done) {
 
       assert = yeoman.assert;
       mockGen = yeoman.test;
 
-      mockGen.run(path.join(__dirname, '../' + subgenerator))
-        .on('end', done);
+      var ctx = mockGen.run(path.join(__dirname, '../' + subgenerator));
+
+      if (tempDir) {
+        ctx.inDir(tempDir);
+      }
+
+      ctx.on('end', done);
     });
   }
 
@@ -32,7 +52,7 @@ var util = (function() {
         yeoman.test.testDirectory = function(dir, cb) {
           process.chdir(dir);
           cb();
-        }
+        };
       });
       after(function() {
         yeoman.test.testDirectory = testDirectory;
@@ -53,7 +73,7 @@ var util = (function() {
     });
   }
 
-  function goCreateApplication(type, applicationName, tempDir) {
+  function goCreateApplication(type, applicationName, tempDir, prompts) {
     before(function(done) {
 
       assert = yeoman.assert;
@@ -63,6 +83,8 @@ var util = (function() {
         type: type,
         applicationName: applicationName
       };
+
+      mockPrompt = _.defaults(mockPrompt, prompts || {}, { projectStructure: false });
 
       var ctx = mockGen.run(path.join(__dirname, '../app'))
         .withPrompts(mockPrompt);
@@ -76,7 +98,7 @@ var util = (function() {
 
   }
 
-  function goCreateApplicationWithOptions(type, applicationName, options) {
+  function goCreateApplicationWithOptions(type, applicationName, options, prompts) {
     before(function(done) {
 
       assert = yeoman.assert;
@@ -87,9 +109,31 @@ var util = (function() {
         applicationName: applicationName
       };
 
+      mockPrompt = _.defaults(mockPrompt, prompts || {}, { projectStructure: false });
+
       mockGen.run(path.join(__dirname, '../app'))
         .withPrompts(mockPrompt)
         .withOptions(options)
+        .on('end', done);
+    });
+
+  }
+
+  function goCreateApplicationWithPrompts(type, applicationName, prompts) {
+    before(function(done) {
+
+      assert = yeoman.assert;
+      mockGen = yeoman.test;
+
+      var mockPrompt = {
+        type: type,
+        applicationName: applicationName
+      };
+
+      mockPrompt = _.defaults(mockPrompt, prompts || {}, { projectStructure: false });
+
+      mockGen.run(path.join(__dirname, '../app'))
+        .withPrompts(mockPrompt)
         .on('end', done);
     });
 
@@ -143,6 +187,7 @@ var util = (function() {
   var methods = {
     goCreateApplication: goCreateApplication,
     goCreateApplicationWithOptions: goCreateApplicationWithOptions,
+    goCreateApplicationWithPrompts: goCreateApplicationWithPrompts,
     goCreate: goCreate,
     goCreateWithArgs: goCreateWithArgs,
     fileCheck: fileCheck,
