@@ -185,7 +185,7 @@ var AspnetGenerator = yeoman.generators.Base.extend({
     var prompts = [{
       type: 'confirm',
       name: 'projectStructure',
-      message: 'Would you like to use the standard solution structure for your solution?',
+      message: 'Create a solution file?',
       default: true
     }];
 
@@ -193,37 +193,11 @@ var AspnetGenerator = yeoman.generators.Base.extend({
       this.projectStructure = props.projectStructure;
       if (props.projectStructure) {
         setApplicationDirectory();
+        this.solutionName = this.applicationName;
+        this.destinationRoot(this.destinationRoot() + '/' + this.solutionName);
       } else {
         this.applicationDirectory = this.applicationName;
       }
-      done();
-    }.bind(this));
-  },
-
-  askForSolutionFolder: function() {
-    var done = this.async();
-
-    if (!this.projectStructure || this.options.composing) {
-      done();
-      return;
-    }
-
-    if (this.options.useCurrentDirectory) {
-      this.solutionName = path.basename(this.destinationRoot());
-      done();
-      return;
-    }
-
-    var prompts = [{
-      type: 'input',
-      name: 'solutionName',
-      message: 'What folder name would like to use for your solution?',
-      default: this.applicationName
-    }];
-
-    this.prompt(prompts, function(props) {
-      this.destinationRoot(this.destinationRoot() + '/' + props.solutionName);
-      this.solutionName = props.solutionName;
       done();
     }.bind(this));
   },
@@ -261,15 +235,13 @@ var AspnetGenerator = yeoman.generators.Base.extend({
   writing: function() {
     this.sourceRoot(path.join(__dirname, '../templates/projects'));
 
-    if (this.projectStructure && !this.fs.exists('.gitignore')) {
+    if (this.projectStructure && !this.fs.exists('global.json')) {
       this.copy(this.sourceRoot() + '/../global.json', 'global.json');
     }
 
     if (this.projectStructure && !this.fs.exists('.gitignore')) {
       this.fs.copy(this.sourceRoot() + '/../gitignore.txt', '.gitignore');
-    }
-
-    if (!this.projectStructure && !this.fs.exists(this.applicationDirectory + '/.gitignore')) {
+    } else if (!this.projectStructure && !this.fs.exists(this.applicationDirectory + '/.gitignore')) {
       this.fs.copy(this.sourceRoot() + '/../gitignore.txt', this.applicationDirectory + '/.gitignore');
     }
 
@@ -294,7 +266,6 @@ var AspnetGenerator = yeoman.generators.Base.extend({
 
       case 'webapi':
         this.sourceRoot(path.join(__dirname, '../templates/projects/' + this.type));
-        this.fs.copy(this.sourceRoot() + '/../../gitignore.txt', this.applicationDirectory + '/.gitignore');
         this.copy(this.sourceRoot() + '/../../Dockerfile.txt', this.applicationDirectory + '/Dockerfile');
         this.fs.copy(this.sourceRoot() + '/hosting.ini', this.applicationDirectory + '/hosting.ini');
         this.fs.copyTpl(this.sourceRoot() + '/Startup.cs', this.applicationDirectory + '/Startup.cs', this.templatedata);
@@ -315,7 +286,6 @@ var AspnetGenerator = yeoman.generators.Base.extend({
         // individual files (configs, etc)
         this.copy(this.sourceRoot() + '/../../Dockerfile.txt', this.applicationDirectory + '/Dockerfile');
         this.fs.copy(this.templatePath('.bowerrc'), this.applicationDirectory + '/.bowerrc');
-        this.fs.copy(this.sourceRoot() + '/../../gitignore.txt', this.applicationDirectory + '/.gitignore');
         this.fs.copyTpl(this.templatePath('bower.json'), this.applicationDirectory + '/bower.json', this.templatedata);
         this.fs.copyTpl(this.templatePath('config.json'), this.applicationDirectory + '/config.json', this.templatedata);
         this.fs.copy(this.templatePath('hosting.ini'), this.applicationDirectory + '/hosting.ini');
@@ -357,7 +327,6 @@ var AspnetGenerator = yeoman.generators.Base.extend({
         // individual files (configs, etc)
         this.copy(this.sourceRoot() + '/../../Dockerfile.txt', this.applicationDirectory + '/Dockerfile');
         this.fs.copy(this.templatePath('.bowerrc'), this.applicationDirectory + '/.bowerrc');
-        this.fs.copy(this.sourceRoot() + '/../../gitignore.txt', this.applicationDirectory + '/.gitignore');
         this.fs.copyTpl(this.templatePath('bower.json'), this.applicationDirectory + '/bower.json', this.templatedata);
         this.fs.copyTpl(this.templatePath('config.json'), this.applicationDirectory + '/config.json', this.templatedata);
         this.fs.copy(this.templatePath('hosting.ini'), this.applicationDirectory + '/hosting.ini');
@@ -392,8 +361,6 @@ var AspnetGenerator = yeoman.generators.Base.extend({
       case 'classlib':
         this.sourceRoot(path.join(__dirname, '../templates/projects/' + this.type));
 
-        this.copy(this.sourceRoot() + '/../../gitignore.txt', this.applicationDirectory + '/.gitignore');
-
         this.template(this.sourceRoot() + '/class.cs', this.applicationDirectory + '/Class1.cs', this.templatedata);
 
         this.fs.copyTpl(this.sourceRoot() + '/project.json', this.applicationDirectory + '/project.json', this.templatedata);
@@ -411,7 +378,7 @@ var AspnetGenerator = yeoman.generators.Base.extend({
   end: function() {
     this.log('\r\n');
     this.log('Your project is now created, you can use the following commands to get going');
-    if (this.projectStructure) {
+    if (this.projectStructure && !this.options.composing) {
       this.log(chalk.green('    cd "' + this.solutionName + '/' + this.applicationDirectory + '"'));
     } else {
       this.log(chalk.green('    cd "' + this.applicationName + '"'));
