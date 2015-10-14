@@ -37,7 +37,8 @@ describe('aspnet - Empty Application', function() {
     'emptyTest/hosting.ini',
     'emptyTest/project.json',
     'emptyTest/Startup.cs',
-    'emptyTest/wwwroot/README.md'
+    'emptyTest/wwwroot/README.md',
+    'emptyTest/Dockerfile'
   ];
   describe('Checking files', function() {
     for (var i = 0; i < files.length; i++) {
@@ -246,6 +247,7 @@ describe('aspnet - Web Application', function() {
 
 
   var files = [
+    'webTest/Dockerfile',
     'webTest/.bowerrc',
     'webTest/.gitignore',
     'webTest/bower.json',
@@ -256,9 +258,9 @@ describe('aspnet - Web Application', function() {
     'webTest/project.json',
     'webTest/README.md',
     'webTest/Startup.cs',
-    "webTest/Controllers/AccountController.cs",
-    "webTest/Controllers/HomeController.cs",
-    "webTest/Controllers/ManageController.cs",
+    'webTest/Controllers/AccountController.cs',
+    'webTest/Controllers/HomeController.cs',
+    'webTest/Controllers/ManageController.cs',
     'webTest/Migrations/00000000000000_Initial.cs',
     'webTest/Migrations/00000000000000_Initial.Designer.cs',
     'webTest/Migrations/ApplicationDbContextModelSnapshot.cs',
@@ -420,6 +422,7 @@ describe('aspnet - Web Application Basic', function() {
   });
 
   var files = [
+    'webTest/Dockerfile',
     'webTest/.bowerrc',
     'webTest/.gitignore',
     'webTest/bower.json',
@@ -488,7 +491,8 @@ describe('aspnet - Web API Application', function() {
     'webAPITest/Properties/launchSettings.json',
     'webAPITest/Startup.cs',
     'webAPITest/.gitignore',
-    'webAPITest/wwwroot/README.md'
+    'webAPITest/wwwroot/README.md',
+    'webAPITest/Dockerfile'
   ];
   describe('Checking files', function() {
     for (var i = 0; i < files.length; i++) {

@@ -268,7 +268,7 @@ var AspnetGenerator = yeoman.generators.Base.extend({
     if (this.projectStructure && !this.fs.exists('.gitignore')) {
       this.fs.copy(this.sourceRoot() + '/../gitignore.txt', '.gitignore');
     }
-    
+
     if (!this.projectStructure && !this.fs.exists(this.applicationDirectory + '/.gitignore')) {
       this.fs.copy(this.sourceRoot() + '/../gitignore.txt', this.applicationDirectory + '/.gitignore');
     }
@@ -282,7 +282,11 @@ var AspnetGenerator = yeoman.generators.Base.extend({
 
         this.template(this.sourceRoot() + '/Startup.cs', this.applicationDirectory + '/Startup.cs', this.templatedata);
 
-        this.copy(this.sourceRoot() + '/project.json', this.applicationDirectory + '/project.json');
+        this.template(this.sourceRoot() + '/Startup.cs', this.applicationDirectory + '/Startup.cs', this.templatedata);
+
+        this.template(this.sourceRoot() + '/project.json', this.applicationDirectory + '/project.json', this.templatedata);
+
+        this.copy(this.sourceRoot() + '/../../Dockerfile.txt', this.applicationDirectory + '/Dockerfile');
 
         /// wwwroot
         this.fs.copy(this.templatePath('wwwroot/**/*'), this.applicationDirectory + '/wwwroot');
@@ -290,9 +294,11 @@ var AspnetGenerator = yeoman.generators.Base.extend({
 
       case 'webapi':
         this.sourceRoot(path.join(__dirname, '../templates/projects/' + this.type));
+        this.fs.copy(this.sourceRoot() + '/../../gitignore.txt', this.applicationDirectory + '/.gitignore');
+        this.copy(this.sourceRoot() + '/../../Dockerfile.txt', this.applicationDirectory + '/Dockerfile');
         this.fs.copy(this.sourceRoot() + '/hosting.ini', this.applicationDirectory + '/hosting.ini');
         this.fs.copyTpl(this.sourceRoot() + '/Startup.cs', this.applicationDirectory + '/Startup.cs', this.templatedata);
-        this.fs.copy(this.sourceRoot() + '/project.json', this.applicationDirectory + '/project.json');
+        this.fs.copyTpl(this.sourceRoot() + '/project.json', this.applicationDirectory + '/project.json', this.templatedata);
         this.fs.copy(this.sourceRoot() + '/Properties', this.applicationDirectory + '/Properties');
         this.fs.copyTpl(this.sourceRoot() + '/Controllers/ValuesController.cs', this.applicationDirectory + '/Controllers/ValuesController.cs', this.templatedata);
         this.fs.copy(this.sourceRoot() + '/wwwroot', this.applicationDirectory + '/wwwroot');
@@ -307,7 +313,9 @@ var AspnetGenerator = yeoman.generators.Base.extend({
           this.fs.copyTpl(this.templatePath('gulpfile.js'), this.applicationDirectory + '/gulpfile.js', this.templatedata);
         }
         // individual files (configs, etc)
+        this.copy(this.sourceRoot() + '/../../Dockerfile.txt', this.applicationDirectory + '/Dockerfile');
         this.fs.copy(this.templatePath('.bowerrc'), this.applicationDirectory + '/.bowerrc');
+        this.fs.copy(this.sourceRoot() + '/../../gitignore.txt', this.applicationDirectory + '/.gitignore');
         this.fs.copyTpl(this.templatePath('bower.json'), this.applicationDirectory + '/bower.json', this.templatedata);
         this.fs.copyTpl(this.templatePath('config.json'), this.applicationDirectory + '/config.json', this.templatedata);
         this.fs.copy(this.templatePath('hosting.ini'), this.applicationDirectory + '/hosting.ini');
@@ -347,7 +355,9 @@ var AspnetGenerator = yeoman.generators.Base.extend({
           this.fs.copyTpl(this.templatePath('gulpfile.js'), this.applicationDirectory + '/gulpfile.js', this.templatedata);
         }
         // individual files (configs, etc)
+        this.copy(this.sourceRoot() + '/../../Dockerfile.txt', this.applicationDirectory + '/Dockerfile');
         this.fs.copy(this.templatePath('.bowerrc'), this.applicationDirectory + '/.bowerrc');
+        this.fs.copy(this.sourceRoot() + '/../../gitignore.txt', this.applicationDirectory + '/.gitignore');
         this.fs.copyTpl(this.templatePath('bower.json'), this.applicationDirectory + '/bower.json', this.templatedata);
         this.fs.copyTpl(this.templatePath('config.json'), this.applicationDirectory + '/config.json', this.templatedata);
         this.fs.copy(this.templatePath('hosting.ini'), this.applicationDirectory + '/hosting.ini');
@@ -368,7 +378,7 @@ var AspnetGenerator = yeoman.generators.Base.extend({
 
         this.template(this.sourceRoot() + '/Startup.cs', this.applicationDirectory + '/Startup.cs', this.templatedata);
 
-        this.copy(this.sourceRoot() + '/project.json', this.applicationDirectory + '/project.json');
+        this.fs.copyTpl(this.sourceRoot() + '/project.json', this.applicationDirectory + '/project.json', this.templatedata);
 
         this.template(this.sourceRoot() + '/homemodule.cs', this.applicationDirectory + '/HomeModule.cs', this.templatedata);
 
@@ -381,8 +391,12 @@ var AspnetGenerator = yeoman.generators.Base.extend({
         break;
       case 'classlib':
         this.sourceRoot(path.join(__dirname, '../templates/projects/' + this.type));
+
+        this.copy(this.sourceRoot() + '/../../gitignore.txt', this.applicationDirectory + '/.gitignore');
+
         this.template(this.sourceRoot() + '/class.cs', this.applicationDirectory + '/Class1.cs', this.templatedata);
-        this.template(this.sourceRoot() + '/project.json', this.applicationDirectory + '/project.json', this.templatedata);
+
+        this.fs.copyTpl(this.sourceRoot() + '/project.json', this.applicationDirectory + '/project.json', this.templatedata);
 
         break;
       case 'unittest':
@@ -395,31 +409,35 @@ var AspnetGenerator = yeoman.generators.Base.extend({
   },
 
   end: function() {
-    if (this.options.composing) {
-      return;
-    }
+    this.log('\r\n');
+    this.log('Your project is now created, you can use the following commands to get going');
     if (this.projectStructure) {
-      this.log('\r\n');
-      this.log('Your project is now created, you can use the following commands to get going');
       this.log(chalk.green('    cd "' + this.solutionName + '/' + this.applicationDirectory + '"'));
-      this.log(chalk.green('    dnu restore'));
-      this.log(chalk.green('    dnu build') + ' (optional, build will also happen when it\'s run)');
-      this.log(chalk.green('    dnx ConsoleApplication') + ' for console projects');
-      this.log(chalk.green('    dnx kestrel') + ' or ' + chalk.green('dnx web') + ' for web projects');
-      this.log(chalk.green('    dnx test') + ' for unit test projects');
-      this.log('\r\n');
     } else {
-      this.log('\r\n');
-      this.log('Your project is now created, you can use the following commands to get going');
       this.log(chalk.green('    cd "' + this.applicationName + '"'));
-      this.log(chalk.green('    dnu restore'));
-      this.log(chalk.green('    dnu build') + ' (optional, build will also happen when it\'s run)');
-      this.log(chalk.green('    dnx ConsoleApplication') + ' for console projects');
-      this.log(chalk.green('    dnx kestrel') + ' or ' + chalk.green('dnx web') + ' for web projects');
-      this.log(chalk.green('    dnx test') + ' for unit test projects');
-      this.log('\r\n');
+    }
+    this.log(chalk.green('    dnu restore'));
+    this.log(chalk.green('    dnu build') + ' (optional, build will also happen when it\'s run)');
+
+    switch (this.type) {
+      case 'console':
+        this.log(chalk.green('    dnx ConsoleApplication'));
+        break;
+      case 'empty':
+      case 'nancy':
+      case 'web':
+      case 'webapi':
+      case 'webbasic':
+        var webMsg = chalk.green('    dnx kestrel');
+        if (process.platform === 'win32') { webMsg += chalk.green(' or dnx web'); }
+        this.log(webMsg);
+        break;
+      case 'unittest':
+        this.log(chalk.green('    dnx test'));
+        break;
     }
 
+    this.log('\r\n');
   }
 });
 
